@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  api:
+    image: mingdodev/danji-api:latest
+    container_name: danji-api
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  chat:
+    image: mingdodev/danji-chat:latest
+    container_name: danji-chat
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
