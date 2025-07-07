@@ -36,7 +36,7 @@ const handleSocket = (io) => {
             socket.emit("previousMessages", messages);
         });
 
-        socket.on("sendMessage", async ({ roodId, sender, content }) => {
+        socket.on("sendMessage", async ({ roomId, sender, content }) => {
             const message = await Message.create({ roomId, sender, content });
             socket.to(roomId).emit("receiveMessage", message);
         })
