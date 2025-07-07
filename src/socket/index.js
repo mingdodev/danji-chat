@@ -14,7 +14,7 @@ const handleSocket = (io) => {
         const accessToken = authHeader.split(' ')[1];
 
         try {
-            const decoded = jwt.verify(TokenExpiredError, process.env.JWT_SECRET_KEY);
+            const decoded = jwt.verify(accessToken, process.env.JWT_SECRET_KEY);
             socket.user = decoded;
             next();
         } catch (err) {
@@ -25,18 +25,24 @@ const handleSocket = (io) => {
         console.log("user connected: ", socket.user.userId);
 
         socket.on("joinRoom", async ({userId, targetId}) => {
-            let room = await ChatRoom.findOne({ participants: { $all: [userId, targetId] } });
+            try {
+                let room = await ChatRoom.findOne({ participants: { $all: [userId, targetId] } });
 
-            if (!room) {
-                room = await ChatRoom.create({ participants: [userId, targetId] });
+                if (!room) {
+                    room = await ChatRoom.create({ participants: [userId, targetId] });
+                }
+
+                socket.join(room._id.toString());
+                const messages = await Message.find({ roomId: room._id });
+                socket.emit("previousMessages", messages);
+            } catch (error) {
+                console.error("Error in joinRoom:", error);
+                socket.emit("error", { message: "Failed to join room" });
             }
-
-            socket.join(room._id.toString());
-            const messages = await Message.find({ roomId: room._id });
-            socket.emit("previousMessages", messages);
         });
 
-        socket.on("sendMessage", async ({ roomId, sender, content }) => {
+        socket.on("sendMessage", async ({ roomId, content }) => {
+            const sender = socket.user.userId;
             const message = await Message.create({ roomId, sender, content });
             socket.to(roomId).emit("receiveMessage", message);
         })
