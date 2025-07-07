@@ -50,6 +50,6 @@ jobs:
 
             docker pull ${{ secrets.ECR_REGISTRY }}/danji-chat:latest
 
-            docker-compose stop chat
-            docker-compose rm -f chat
-            docker-compose up -d chat
+            docker compose stop chat
+            docker compose rm -f chat
+            docker compose up -d chat
