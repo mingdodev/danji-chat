@@ -18,6 +18,6 @@ const io = new Server(server, {
 
 handleSocket(io);
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server running at port ${PORT}`);
 });
