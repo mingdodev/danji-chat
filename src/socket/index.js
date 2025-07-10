@@ -18,7 +18,6 @@ const handleSocket = (io) => {
             socket.user = decoded;
             next();
         } catch (err) {
-            console.error('인증 미들웨어 에러', err.message)
             return next(new Error("AUTH_INVALID: 잘못된 토큰입니다."))
         }
     })
@@ -35,7 +34,6 @@ const handleSocket = (io) => {
 
                 socket.join(room._id.toString());
                 const messages = await Message.find({ roomId: room._id });
-                console.log(messages, room._id);
                 socket.emit("previousMessages", {
                     roomId: room._id,
                     messages: messages,
