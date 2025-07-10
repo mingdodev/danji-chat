@@ -5,26 +5,27 @@ const Message = require('../models/Message');
 
 const handleSocket = (io) => {
     io.use((socket, next) => {
-        const authHeader = socket.handshake.headers["authorization"];
-
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return next(new Error("AUTH_INVALID: 잘못된 토큰입니다."))
-        }
-
-        const accessToken = authHeader.split(' ')[1];
-
         try {
-            const decoded = jwt.verify(accessToken, process.env.JWT_SECRET_KEY);
+            const authHeader = socket.handshake.headers["authorization"];
+
+            if (!authHeader || !authHeader.startsWith("Bearer ")) {
+                return next(new Error("AUTH_INVALID: 잘못된 토큰입니다."))
+            }
+
+            const accessToken = authHeader.split(' ')[1];
+            const decodedSecret = Buffer.from(process.env.JWT_SECRET_KEY, 'base64');
+            const decoded = jwt.verify(accessToken, decodedSecret);
             socket.user = decoded;
             next();
         } catch (err) {
-            return next(new Error("UNAUTHORIZED: 인증되지 않은 요청입니다."))
+            console.error('인증 미들웨어 에러', err.message)
+            return next(new Error("AUTH_INVALID: 잘못된 토큰입니다."))
         }
     })
     io.on("connection", (socket) => {
         console.log("user connected: ", socket.user.userId);
 
-        socket.on("joinRoom", async ({userId, targetId}) => {
+        socket.on("joinRoom", async ({ userId, targetId }) => {
             try {
                 let room = await ChatRoom.findOne({ participants: { $all: [userId, targetId] } });
 
@@ -34,7 +35,11 @@ const handleSocket = (io) => {
 
                 socket.join(room._id.toString());
                 const messages = await Message.find({ roomId: room._id });
-                socket.emit("previousMessages", messages);
+                console.log(messages, room._id);
+                socket.emit("previousMessages", {
+                    roomId: room._id,
+                    messages: messages,
+                });
             } catch (error) {
                 console.error("Error in joinRoom:", error);
                 socket.emit("error", { message: "Failed to join room" });
