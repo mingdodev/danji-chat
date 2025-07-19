@@ -24,12 +24,12 @@ const handleSocket = (io) => {
     io.on("connection", (socket) => {
         console.log("user connected: ", socket.user.userId);
 
-        socket.on("joinRoom", async ({ userId, targetId }) => {
+        socket.on("joinRoom", async ({ orderId, userId, targetId }) => {
             try {
-                let room = await ChatRoom.findOne({ participants: { $all: [userId, targetId] } });
+                let room = await ChatRoom.findOne({ order: orderId, participants: { $all: [userId, targetId] } });
 
                 if (!room) {
-                    room = await ChatRoom.create({ participants: [userId, targetId] });
+                    room = await ChatRoom.create({ order: orderId, participants: [userId, targetId] });
                 }
 
                 socket.join(room._id.toString());
