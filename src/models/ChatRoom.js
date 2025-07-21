@@ -6,4 +6,6 @@ const ChatRoomSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
+ChatRoomSchema.index({ order: 1}, { unique: true });
+
 module.exports = mongoose.model('ChatRoom', ChatRoomSchema);
