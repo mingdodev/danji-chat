@@ -26,7 +26,7 @@ const handleSocket = (io) => {
 
         socket.on("joinRoom", async ({ orderId, userId, targetId }) => {
             try {
-                let room = await ChatRoom.findOne({ order: orderId, participants: { $all: [userId, targetId] } });
+                let room = await ChatRoom.findOne({ order: orderId });
 
                 if (!room) {
                     room = await ChatRoom.create({ order: orderId, participants: [userId, targetId] });
